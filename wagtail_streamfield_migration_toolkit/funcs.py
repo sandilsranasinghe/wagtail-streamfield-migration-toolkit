@@ -30,7 +30,7 @@ def rename_data_migration(
         with_revisions=with_revisions,
     )
 
-
+# TODO just pass in operation to stream_data_migration
 def remove_data_migration(
     apps,
     schema_editor,
