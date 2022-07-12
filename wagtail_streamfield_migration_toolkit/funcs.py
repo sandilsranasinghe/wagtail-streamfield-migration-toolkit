@@ -5,6 +5,9 @@ from wagtail.blocks import StreamValue
 from wagtail_streamfield_migration_toolkit import utils
 
 
+# TODO use a verb
+# TODO maybe a kwarg for batch size
+# TODO kwarg for limiting page_revisions
 def stream_data_migration(
     apps,
     schema_editor,
