@@ -17,9 +17,10 @@ def stream_data_migration(
 ):
     page_model = apps.get_model(app_name, model_name)
 
-    for page in page_model.objects.annotate(
+    page_queryset = page_model.objects.annotate(
         raw_content=Cast(F(field_name), JSONField())
-    ).all():
+    ).all()
+    for page in page_queryset.iterator():
 
         altered_raw_data = utils.apply_changes_to_raw_data(
             raw_data=page.raw_content,
