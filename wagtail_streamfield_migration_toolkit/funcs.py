@@ -2,55 +2,7 @@ from django.db.models import JSONField, F
 from django.db.models.functions import Cast
 from wagtail.blocks import StreamValue
 
-from wagtail_streamfield_migration_toolkit import utils, operations
-
-
-# TODO would it better to have a class?
-
-
-def rename_data_migration(
-    apps,
-    schema_editor,
-    app_name,
-    model_name,
-    field_name,
-    block_path_str,
-    new_name,
-    with_revisions=False,
-):
-    operation = operations.RenameBlockOperation(new_name=new_name)
-    stream_data_migration(
-        apps=apps,
-        schema_editor=schema_editor,
-        app_name=app_name,
-        model_name=model_name,
-        field_name=field_name,
-        block_path_str=block_path_str,
-        operation=operation,
-        with_revisions=with_revisions,
-    )
-
-# TODO just pass in operation to stream_data_migration
-def remove_data_migration(
-    apps,
-    schema_editor,
-    app_name,
-    model_name,
-    field_name,
-    block_path_str,
-    with_revisions=False,
-):
-    operation = operations.RemoveBlockOperation()
-    stream_data_migration(
-        apps=apps,
-        schema_editor=schema_editor,
-        app_name=app_name,
-        model_name=model_name,
-        field_name=field_name,
-        block_path_str=block_path_str,
-        operation=operation,
-        with_revisions=with_revisions,
-    )
+from wagtail_streamfield_migration_toolkit import utils
 
 
 def stream_data_migration(
@@ -86,6 +38,6 @@ def stream_data_migration(
     # iterate over pages
     # - rename_blocks_in_raw_content for each page
     # - TODO add a return value to util to know if changes were made
-    # - TODO save changed
+    # - TODO save changed only
     # -
     # TODO for revisions
