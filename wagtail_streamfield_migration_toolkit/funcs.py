@@ -16,6 +16,7 @@ def migrate_stream_data(
     operation,
     with_revisions=False,
     revision_limit=None,
+    chunk_size=1024,
 ):
     page_model = apps.get_model(app_name, model_name)
     updated_pages = []
@@ -23,7 +24,7 @@ def migrate_stream_data(
     page_queryset = page_model.objects.annotate(
         raw_content=Cast(F(field_name), JSONField())
     ).all()
-    for page in page_queryset.iterator():
+    for page in page_queryset.iterator(chunk_size=chunk_size):
 
         altered_raw_data = utils.apply_changes_to_raw_data(
             raw_data=page.raw_content,
@@ -39,7 +40,7 @@ def migrate_stream_data(
 
         updated_pages.append(page)
 
-    page_model.objects.bulk_update(updated_pages, [field_name])
+    page_model.objects.bulk_update(updated_pages, [field_name], batch_size=chunk_size)
 
     # iterate over pages
     # - rename_blocks_in_raw_content for each page
