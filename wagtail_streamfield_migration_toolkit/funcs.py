@@ -5,10 +5,8 @@ from wagtail.blocks import StreamValue
 from wagtail_streamfield_migration_toolkit import utils
 
 
-# TODO use a verb
 # TODO maybe a kwarg for batch size
-# TODO kwarg for limiting page_revisions
-def stream_data_migration(
+def migrate_stream_data(
     apps,
     schema_editor,
     app_name,
@@ -17,8 +15,10 @@ def stream_data_migration(
     block_path_str,
     operation,
     with_revisions=False,
+    revision_limit=None,
 ):
     page_model = apps.get_model(app_name, model_name)
+    updated_pages = []
 
     page_queryset = page_model.objects.annotate(
         raw_content=Cast(F(field_name), JSONField())
@@ -37,7 +37,9 @@ def stream_data_migration(
             page, field_name, StreamValue(stream_block, altered_raw_data, is_lazy=True)
         )
 
-        page.save()
+        updated_pages.append(page)
+
+    page_model.objects.bulk_update(updated_pages, [field_name])
 
     # iterate over pages
     # - rename_blocks_in_raw_content for each page
