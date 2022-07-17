@@ -5,7 +5,6 @@ from wagtail.blocks import StreamValue
 from wagtail_streamfield_migration_toolkit import utils
 
 
-# TODO maybe a kwarg for batch size
 def migrate_stream_data(
     apps,
     schema_editor,
@@ -19,11 +18,11 @@ def migrate_stream_data(
     chunk_size=1024,
 ):
     page_model = apps.get_model(app_name, model_name)
-    updated_pages = []
 
     page_queryset = page_model.objects.annotate(
         raw_content=Cast(F(field_name), JSONField())
     ).all()
+    updated_pages_buffer = []
     for page in page_queryset.iterator(chunk_size=chunk_size):
 
         altered_raw_data = utils.apply_changes_to_raw_data(
@@ -32,19 +31,20 @@ def migrate_stream_data(
             operation=operation,
             streamfield=getattr(page_model, field_name),
         )
+        # - TODO add a return value to util to know if changes were made - Where would this be added?
+        # - TODO save changed only
 
         stream_block = getattr(page, field_name).stream_block
         setattr(
             page, field_name, StreamValue(stream_block, altered_raw_data, is_lazy=True)
         )
+        updated_pages_buffer.append(page)
 
-        updated_pages.append(page)
+        if len(updated_pages_buffer) == chunk_size:
+            page_model.objects.bulk_update(updated_pages_buffer, [field_name])
+            updated_pages_buffer = []
 
-    page_model.objects.bulk_update(updated_pages, [field_name], batch_size=chunk_size)
+    if len(updated_pages_buffer) > 0:
+        page_model.objects.bulk_update(updated_pages_buffer, [field_name])
 
-    # iterate over pages
-    # - rename_blocks_in_raw_content for each page
-    # - TODO add a return value to util to know if changes were made
-    # - TODO save changed only
-    # -
     # TODO for revisions
